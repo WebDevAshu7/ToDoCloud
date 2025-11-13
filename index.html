@@ -1,23 +1,190 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>CloudyTasks</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CloudyTasks</title>
+<style>
+  /* Dynamic gradient background animation */
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Mosaic blur using backdrop-filter and grid overlay */
+  body {
+    margin: 0;
+    height: 100vh;
+    background: linear-gradient(-45deg, #a7cbff, #e0ecff, #f0faff, #d9f0ff);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  /* Mosaic grid overlay with blur */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: repeating-conic-gradient(
+      from 45deg,
+      rgba(255,255,255,0.15) 0deg 5deg,
+      transparent 5deg 10deg
+    );
+    backdrop-filter: blur(8px);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* Container styling */
+  .todo-container {
+    background: rgba(255, 255, 255, 0.75);
+    border-radius: 12px;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+    padding: 30px 40px;
+    width: 500px;
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    position: relative;
+  }
+
+  /* Heading */
+  h1 {
+    font-weight: 900;
+    font-size: 2.2rem;
+    color: #003a8c;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Cloud emoji with subtle drop shadow */
+  h1 span {
+    text-shadow: 1px 1px 3px rgba(0, 58, 140, 0.3);
+    font-size: 1.6rem;
+  }
+
+  /* Input and button wrapper */
+  form {
+    display: flex;
+    gap: 14px;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    padding: 14px 18px;
+    font-size: 1rem;
+    border: 2px solid #aac7ff;
+    border-radius: 12px;
+    outline: none;
+    transition: border-color 0.3s ease;
+  }
+  input[type="text"]:focus {
+    border-color: #0059cc;
+    background: #e6f0ff;
+  }
+
+  /* Classy button with effects */
+  button {
+    background: linear-gradient(145deg, #0059cc, #003a8c);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    padding: 14px 25px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow:
+      0 4px 8px rgba(0, 58, 140, 0.3),
+      inset 0 -3px 8px rgba(255, 255, 255, 0.2);
+    transition:
+      background 0.3s ease,
+      box-shadow 0.3s ease,
+      transform 0.15s ease;
+  }
+  button:hover {
+    background: linear-gradient(145deg, #003a8c, #002766);
+    box-shadow:
+      0 6px 14px rgba(0, 58, 140, 0.5),
+      inset 0 3px 8px rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+  }
+  button:active {
+    background: linear-gradient(145deg, #002766, #001944);
+    box-shadow:
+      inset 0 3px 8px rgba(0, 58, 140, 0.6);
+    transform: translateY(1px);
+  }
+
+  /* Task list styles */
+  ul.tasks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  ul.tasks li {
+    background: #cfe0ff;
+    margin-bottom: 12px;
+    padding: 12px 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    box-shadow: 1px 1px 5px rgba(0,0,0,0.08);
+    transition: background 0.3s ease;
+  }
+  ul.tasks li.completed {
+    background: #a4c6ff;
+    text-decoration: line-through;
+    color: #445973;
+  }
+  ul.tasks li:hover {
+    background: #99bbff;
+    cursor: pointer;
+  }
+</style>
 </head>
 <body>
-  <main class="container">
-    <h1>CloudyTasks ☁️</h1>
-
-    <form id="taskForm">
-      <input id="taskInput" placeholder="Add a new task..." autocomplete="off" />
-      <button type="submit">Add</button>
+  <div class="todo-container" role="main" aria-label="To Do List">
+    <h1>CloudyTasks <span>☁️</span></h1>
+    <form id="taskForm" aria-label="Add Task Form">
+      <input id="taskInput" type="text" placeholder="Add a new task..." aria-label="Task input" required />
+      <button type="submit" aria-label="Add task button">Add</button>
     </form>
+    <ul class="tasks" aria-live="polite" aria-label="Task list"></ul>
+  </div>
 
-    <ul id="taskList"></ul>
-  </main>
+  <script>
+    const form = document.getElementById('taskForm');
+    const input = document.getElementById('taskInput');
+    const taskList = document.querySelector('.tasks');
 
-  <script type="module" src="app.js"></script>
+    // Add new task
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const taskText = input.value.trim();
+      if (taskText === '') return;
+      
+      const li = document.createElement('li');
+      li.textContent = taskText;
+
+      // Toggle complete on click
+      li.addEventListener('click', () => {
+        li.classList.toggle('completed');
+      });
+
+      taskList.appendChild(li);
+      input.value = '';
+      input.focus();
+    });
+  </script>
 </body>
 </html>
