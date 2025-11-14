@@ -11,13 +11,14 @@ import {
   (get it from Firebase Console -> Project settings -> SDK setup)
 ------------------------*/
 const firebaseConfig = {
-  apiKey: "FIREBASE_API_KEY",
-  authDomain: "FIREBASE_AUTH_DOMAIN",
-  projectId: "FIREBASE_PROJECT_ID",
-  storageBucket: "FIREBASE_STORAGE_BUCKET",
-  messagingSenderId: "FIREBASE_MSG_SENDER_ID",
-  appId: "FIREBASE_APP_ID"
-};
+    apiKey: "AIzaSyDl9PYjf-V4SeO83Ews6Y8fmPyyPsf4M0g",
+    authDomain: "todocloud-752bf.firebaseapp.com",
+    projectId: "todocloud-752bf",
+    storageBucket: "todocloud-752bf.firebasestorage.app",
+    messagingSenderId: "7034105238",
+    appId: "1:7034105238:web:87650a7b4222a88eb241b7",
+    measurementId: "G-YJ6CYF8Z1K"
+  };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -85,3 +86,4 @@ onSnapshot(q, (snapshot) => {
     taskList.appendChild(li);
   });
 });
+
